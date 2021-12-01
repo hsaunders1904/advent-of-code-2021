@@ -1,25 +1,27 @@
 extern crate clap;
-use clap::{Arg, App};
+use clap::{App, Arg};
 
 use std::str::FromStr;
 
 struct InputArgs {
-    file_path: String
+    file_path: String,
 }
 
 fn parse_args() -> InputArgs {
     let matches = App::new("Advent of code day 1")
         .version("0.0.1")
         .about("Count the number of times a depth measurement increases")
-        .arg(Arg::with_name("data_file")
-            .value_name("DATA_FILE")
-            .takes_value(true)
-            .help("Text file containing data - one integer per line")
-            .required(true)
-        ).get_matches();
+        .arg(
+            Arg::with_name("data_file")
+                .value_name("DATA_FILE")
+                .takes_value(true)
+                .help("Text file containing data - one integer per line")
+                .required(true),
+        )
+        .get_matches();
 
-    InputArgs{
-        file_path: matches.value_of("data_file").unwrap().to_owned()
+    InputArgs {
+        file_path: matches.value_of("data_file").unwrap().to_owned(),
     }
 }
 
@@ -31,8 +33,7 @@ fn read_lines<T: FromStr>(file_path: &str) -> Vec<Result<T, <T as FromStr>::Err>
         .collect()
 }
 
-fn count_increasing_numbers(values: &Vec<i32>, window_size: usize) -> u64
-{
+fn count_increasing_numbers(values: &Vec<i32>, window_size: usize) -> u64 {
     let mut count = 0;
 
     for idx in 0..(values.len() - window_size) {
@@ -45,21 +46,25 @@ fn count_increasing_numbers(values: &Vec<i32>, window_size: usize) -> u64
     return count;
 }
 
-
 fn main() {
     let args = parse_args();
     println!("Input file: {}", args.file_path);
 
-    let depth_measurements: Vec<i32> = read_lines::<i32>(&args.file_path).into_iter().flatten().collect();
+    let depth_measurements: Vec<i32> = read_lines::<i32>(&args.file_path)
+        .into_iter()
+        .flatten()
+        .collect();
     println!("Found {} depth measurements.", depth_measurements.len());
 
-    let num_increasing_measurements_1 = count_increasing_numbers(&depth_measurements, 1);
-    println!("{} measurements were increasing with window size 1", num_increasing_measurements_1);
-
-    let num_increasing_measurements_3 = count_increasing_numbers(&depth_measurements, 3);
-    println!("{} measurements were increasing with window size 3", num_increasing_measurements_3);
+    println!(
+        "{} measurements were increasing with window size 1",
+        count_increasing_numbers(&depth_measurements, 1)
+    );
+    println!(
+        "{} measurements were increasing with window size 3",
+        count_increasing_numbers(&depth_measurements, 3)
+    );
 }
-
 
 #[cfg(test)]
 mod tests {
