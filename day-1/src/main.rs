@@ -31,10 +31,14 @@ fn read_lines<T: FromStr>(file_path: &str) -> Vec<Result<T, <T as FromStr>::Err>
         .collect()
 }
 
-fn count_increasing_numbers<T: std::cmp::PartialOrd>(values: &Vec<T>) -> u64 {
+fn count_increasing_numbers(values: &Vec<i32>, window_size: usize) -> u64
+{
     let mut count = 0;
-    for idx in 0..(values.len() - 1) {
-        if values[idx] < values[idx + 1] {
+
+    for idx in 0..(values.len() - window_size) {
+        let window1 = &values[idx..(idx + window_size)];
+        let window2 = &values[(idx + 1)..(idx + window_size + 1)];
+        if window1.iter().sum::<i32>() < window2.iter().sum::<i32>() {
             count += 1;
         }
     }
@@ -49,8 +53,11 @@ fn main() {
     let depth_measurements: Vec<i32> = read_lines::<i32>(&args.file_path).into_iter().flatten().collect();
     println!("Found {} depth measurements.", depth_measurements.len());
 
-    let num_increasing_measurements = count_increasing_numbers(&depth_measurements);
-    println!("{} measurements were increasing", num_increasing_measurements);
+    let num_increasing_measurements_1 = count_increasing_numbers(&depth_measurements, 1);
+    println!("{} measurements were increasing with window size 1", num_increasing_measurements_1);
+
+    let num_increasing_measurements_3 = count_increasing_numbers(&depth_measurements, 3);
+    println!("{} measurements were increasing with window size 3", num_increasing_measurements_3);
 }
 
 
@@ -61,7 +68,14 @@ mod tests {
     #[test]
     fn count_increasing_numbers_counts_increasing_numbers_correctly() {
         let depths = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
-        let num_increasing = count_increasing_numbers(&depths);
+        let num_increasing = count_increasing_numbers(&depths, 1);
         assert_eq!(num_increasing, 7);
+    }
+
+    #[test]
+    fn count_increasing_numbers_counts_correctly_with_3_value_sliding_window() {
+        let depths = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
+        let num_increasing = count_increasing_numbers(&depths, 3);
+        assert_eq!(num_increasing, 5);
     }
 }
