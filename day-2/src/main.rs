@@ -30,6 +30,20 @@ enum Direction {
     Forward,
 }
 
+impl From<&str> for Direction {
+    fn from(direction: &str) -> Direction {
+        match direction.as_ref() {
+            "up" => Direction::Up,
+            "down" => Direction::Down,
+            "forward" => Direction::Forward,
+            _ => {
+                panic!("Invalid direction string '{}'", direction)
+            }
+        }
+    }
+}
+
+#[derive(Debug)]
 struct Instruction {
     direction: Direction,
     magnitude: i32,
@@ -45,20 +59,9 @@ impl From<&str> for Instruction {
             );
         }
         if let [direction_str, magnitude_str] = &parts[..] {
-            let direction = match direction_str.as_ref() {
-                "up" => Direction::Up,
-                "down" => Direction::Down,
-                "forward" => Direction::Forward,
-                _ => {
-                    panic!("Invalid direction string '{}'", direction_str)
-                }
-            };
-
-            let magnitude = magnitude_str.parse::<i32>().unwrap();
-
             return Instruction {
-                direction: direction,
-                magnitude: magnitude,
+                direction: Direction::from(direction_str.clone()),
+                magnitude: magnitude_str.parse::<i32>().unwrap(),
             };
         }
         panic!("No space found in instruction string '{}'", instruction);
@@ -78,22 +81,34 @@ fn parse_instructions(input: &str) -> Vec<Instruction> {
 struct Position {
     horizontal: i32,
     depth: i32,
+    aim: i32,
 }
 
 impl Position {
     fn new() -> Self {
         Default::default()
     }
+
+    fn apply_instruction(&mut self, instruction: &Instruction) {
+        match instruction.direction {
+            Direction::Forward => {
+                self.horizontal += instruction.magnitude;
+                self.depth += self.aim * instruction.magnitude;
+            }
+            Direction::Up => {
+                self.aim -= instruction.magnitude;
+            }
+            Direction::Down => {
+                self.aim += instruction.magnitude;
+            }
+        }
+    }
 }
 
 fn accumulate_instructions(instructions: Vec<Instruction>) -> Position {
     let mut pos = Position::new();
     for instruction in instructions {
-        match instruction.direction {
-            Direction::Forward => pos.horizontal += instruction.magnitude,
-            Direction::Down => pos.depth += instruction.magnitude,
-            Direction::Up => pos.depth -= instruction.magnitude,
-        }
+        pos.apply_instruction(&instruction);
     }
     return pos;
 }
@@ -106,10 +121,7 @@ fn main() {
     let pos = accumulate_instructions(instructions);
 
     println!("Final position: {:?}", pos);
-    println!(
-        "depth * horizontal position = {}",
-        pos.depth * pos.horizontal
-    );
+    println!("depth*horizontal position = {}", pos.depth * pos.horizontal);
 }
 
 #[cfg(test)]
@@ -162,7 +174,7 @@ mod tests {
 
         let pos = accumulate_instructions(instructions);
 
-        assert_eq!(pos.depth, 10);
+        assert_eq!(pos.depth, 60);
         assert_eq!(pos.horizontal, 15);
     }
 }
