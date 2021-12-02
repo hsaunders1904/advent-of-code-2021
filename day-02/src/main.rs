@@ -1,27 +1,4 @@
-extern crate clap;
-use clap::{App, Arg};
-
-struct InputArgs {
-    file_path: String,
-}
-
-fn parse_args() -> InputArgs {
-    let matches = App::new("Advent of code day 1")
-        .version("0.0.1")
-        .about("Count the number of times a depth measurement increases")
-        .arg(
-            Arg::with_name("data_file")
-                .value_name("DATA_FILE")
-                .takes_value(true)
-                .help("Text file containing data - one integer per line")
-                .required(true),
-        )
-        .get_matches();
-
-    InputArgs {
-        file_path: matches.value_of("data_file").unwrap().to_owned(),
-    }
-}
+mod cli_parser;
 
 #[derive(PartialEq, Debug)]
 enum Direction {
@@ -114,7 +91,7 @@ fn accumulate_instructions(instructions: Vec<Instruction>) -> Position {
 }
 
 fn main() {
-    let args = parse_args();
+    let args = cli_parser::parse_args();
 
     let file_contents = std::fs::read_to_string(args.file_path).expect("Error reading file.");
     let instructions = parse_instructions(&file_contents);
