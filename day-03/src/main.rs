@@ -2,39 +2,44 @@ mod cli_parser;
 
 use std::io::BufRead;
 
-fn calculate_consumption<T>(mut lines: std::io::Lines<T>) -> usize
+fn read_lines_to_decimal<T>(lines: std::io::Lines<T>) -> Vec<u64>
 where
     T: std::io::BufRead,
 {
-    let first_line = lines.next().unwrap().unwrap();
-    let num_bits = first_line.len();
+    let mut decimals: Vec<u64> = Vec::new();
+    for (line_num, line) in lines
+        .map(|x| u64::from_str_radix(&x.unwrap(), 2))
+        .enumerate()
+    {
+        match line {
+            Err(why) => panic!("Could not parse line '{}': {}", line_num + 1, why),
+            Ok(line) => decimals.push(line),
+        }
+    }
+    return decimals;
+}
 
-    let mut running_totals: Vec<f64> = vec![0.0; num_bits];
-    let mut num_lines = 0;
-    for line in lines {
-        let x = line.unwrap();
-        for (bit_pos, bit_str) in x.trim().chars().enumerate() {
-            match bit_str {
-                '0' => {}
-                '1' => running_totals[bit_pos] += 1.0,
-                ' ' => {}
-                _ => {
-                    panic!("Bad character '{}' in line", bit_str)
-                }
+// Count the number of 1s in each bit position in each value
+fn get_bit_counts(values: &Vec<u64>, num_bits: usize) -> Vec<u64> {
+    let mut counts: Vec<u64> = vec![0; num_bits];
+    for value in values {
+        for bit_idx in 0..num_bits {
+            let filter = 1 << (num_bits - bit_idx - 1);
+            if value & filter == filter {
+                counts[bit_idx] += 1;
             }
         }
-        num_lines += 1;
     }
+    return counts;
+}
 
-    let bits: Vec<bool> = running_totals
-        .iter()
-        .map(|x| (x / f64::from(num_lines)) > 0.5)
-        .collect();
+fn calculate_consumption(values: Vec<u64>, num_bits: usize) -> u64 {
+    let bit_counts = get_bit_counts(&values, num_bits);
 
-    let mut gamma_rate: usize = 0;
-    let mut epsilon: usize = 0;
-    for bit in bits {
-        if bit {
+    let mut gamma_rate: u64 = 0;
+    let mut epsilon: u64 = 0;
+    for count in &bit_counts {
+        if *count as f64 / values.len() as f64 > 0.5 {
             gamma_rate += 1;
         } else {
             epsilon += 1;
@@ -45,8 +50,8 @@ where
     gamma_rate >>= 1;
     epsilon >>= 1;
 
-    println!("gamma rate: {}, {:b}", gamma_rate, gamma_rate);
-    println!("epsilon: {}, {:b}", epsilon, epsilon);
+    println!("gamma_rate: {}", gamma_rate);
+    println!("epsilon: {}", epsilon);
     return gamma_rate * epsilon;
 }
 
@@ -63,7 +68,8 @@ fn main() {
     };
 
     let reader = std::io::BufReader::new(file);
-    let consumption = calculate_consumption(reader.lines());
+    let values = read_lines_to_decimal(reader.lines());
+    let consumption = calculate_consumption(values, 12);
     println!("Power consumption: {}", consumption);
 }
 
@@ -77,22 +83,11 @@ mod tests {
 
     #[test]
     fn correct_power_consumption() {
-        let diag_report = r"00100
-        11110
-        10110
-        10111
-        10101
-        01111
-        00111
-        11100
-        10000
-        11001
-        00010
-        01010
-        ";
+        let diag_report =
+            "00100\n11110\n10110\n10111\n10101\n01111\n00111\n11100\n10000\n11001\n00010\n01010";
         let buf = std::io::BufReader::new(read_from_string(diag_report));
-
-        let power_consumption = calculate_consumption(buf.lines());
+        let values = read_lines_to_decimal(buf.lines());
+        let power_consumption = calculate_consumption(values, 5);
 
         assert_eq!(power_consumption, 198);
     }
