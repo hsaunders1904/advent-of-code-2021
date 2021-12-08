@@ -16,15 +16,48 @@ fn create_boards(raw_boards: Vec<Array2<u32>>) -> Vec<Board> {
     boards
 }
 
+fn get_last_to_win(drawn_numbers: &Vec<u32>, boards: &mut Vec<Board>) -> Option<u32> {
+    for draw_idx in 0..4 {
+        for board in boards.iter_mut() {
+            part1::update_board(board, drawn_numbers[draw_idx]);
+        }
+    }
+
+    let mut board_has_bingo: Vec<u32> = vec![0; boards.len()];
+    for draw_idx in 4..drawn_numbers.len() {
+        for (board_idx, board) in boards.iter_mut().enumerate() {
+            part1::update_board(board, drawn_numbers[draw_idx]);
+            match part1::board_has_bingo(board) {
+                Some(sum) => {
+                    board_has_bingo[board_idx] = 1;
+                    if board_has_bingo.iter().sum::<u32>() as usize == board_has_bingo.len() {
+                        println!("Last number  : {}", drawn_numbers[draw_idx]);
+                        println!("Remaining sum: {}", sum);
+                        println!("Board number : {}", board_idx + 1);
+                        return Some(sum * drawn_numbers[draw_idx]);
+                    }
+                }
+                None => {}
+            };
+        }
+    }
+    None
+}
+
 fn main() {
     let args = cli_parser::parse_args();
     let (drawn_numbers, raw_boards) = io::read_input(&args.file_path);
     let mut boards = create_boards(raw_boards);
 
     match part1::get_winning_score(&drawn_numbers, &mut boards) {
-        Some(score) => println!("BINGO! With score {}", score),
+        Some(score) => println!("First BINGO! With score {}", score),
         None => println!("No winners!"),
     };
+
+    match get_last_to_win(&drawn_numbers, &mut boards) {
+        Some(score) => println!("Final BINGO! With score {}", score),
+        None => println!("No winners!"),
+    }
 }
 
 #[cfg(test)]
@@ -57,7 +90,7 @@ mod tests {
  2  0 12  3  7";
 
     #[test]
-    fn correct_score_from_three_boards() {
+    fn correct_first_bingo_score_from_three_boards() {
         let buf = std::io::BufReader::new(read_from_string(INPUT));
         let (drawn_numbers, raw_boards) = io::parse_lines(buf.lines().by_ref());
         let mut boards = create_boards(raw_boards);
@@ -66,5 +99,14 @@ mod tests {
             part1::get_winning_score(&drawn_numbers, &mut boards),
             Some(4512)
         );
+    }
+
+    #[test]
+    fn correct_final_bingo_score_from_three_boards() {
+        let buf = std::io::BufReader::new(read_from_string(INPUT));
+        let (drawn_numbers, raw_boards) = io::parse_lines(buf.lines().by_ref());
+        let mut boards = create_boards(raw_boards);
+
+        assert_eq!(get_last_to_win(&drawn_numbers, &mut boards), Some(1924));
     }
 }

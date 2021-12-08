@@ -5,7 +5,7 @@ pub struct Board {
     pub dobbed: Array2<bool>,
 }
 
-fn update_board(board: &mut Board, value: u32) {
+pub fn update_board(board: &mut Board, value: u32) {
     for (idx, board_value) in board.values.indexed_iter() {
         if *board_value == value {
             board.dobbed[idx] = true;
@@ -23,7 +23,7 @@ fn sum_where_false(values: &Array2<u32>, mask: &Array2<bool>) -> u32 {
     sum
 }
 
-fn board_has_bingo(board: &Board) -> Option<u32> {
+pub fn board_has_bingo(board: &Board) -> Option<u32> {
     let dobbed = &board.dobbed;
 
     for row_idx in 0..5 {
