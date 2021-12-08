@@ -1,10 +1,30 @@
 mod cli_parser;
 mod io;
+mod part1;
+
+use ndarray::Array2;
+use part1::Board;
+
+fn create_boards(raw_boards: Vec<Array2<u32>>) -> Vec<Board> {
+    let mut boards: Vec<Board> = Vec::new();
+    for board in raw_boards {
+        boards.push(Board {
+            values: board,
+            dobbed: Array2::default((5, 5)),
+        });
+    }
+    boards
+}
 
 fn main() {
     let args = cli_parser::parse_args();
-    let bingo = io::read_input(&args.file_path);
-    println!("Read {} boards.", bingo.boards.len());
+    let (drawn_numbers, raw_boards) = io::read_input(&args.file_path);
+    let mut boards = create_boards(raw_boards);
+
+    match part1::get_winning_score(&drawn_numbers, &mut boards) {
+        Some(score) => println!("BINGO! With score {}", score),
+        None => println!("No winners!"),
+    };
 }
 
 #[cfg(test)]
@@ -37,10 +57,14 @@ mod tests {
  2  0 12  3  7";
 
     #[test]
-    fn three_boards_read_from_input() {
+    fn correct_score_from_three_boards() {
         let buf = std::io::BufReader::new(read_from_string(INPUT));
-        let game = io::parse_lines(buf.lines().by_ref());
-        assert_eq!(game.boards.len(), 3);
-        assert_eq!(game.drawn_numbers.len(), 27);
+        let (drawn_numbers, raw_boards) = io::parse_lines(buf.lines().by_ref());
+        let mut boards = create_boards(raw_boards);
+
+        assert_eq!(
+            part1::get_winning_score(&drawn_numbers, &mut boards),
+            Some(4512)
+        );
     }
 }
