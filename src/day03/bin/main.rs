@@ -1,5 +1,4 @@
-mod cli_parser;
-
+use advent_of_code::cli;
 use bit_field::BitField;
 use std::io::BufRead;
 
@@ -110,7 +109,7 @@ fn get_life_support_rating(values: &Vec<u64>, num_bits: usize) -> u64 {
 }
 
 fn main() {
-    let args = cli_parser::parse_args();
+    let args = cli::parse_args();
 
     let file = match std::fs::File::open(&args.file_path) {
         Err(why) => panic!(

@@ -1,29 +1,6 @@
-extern crate clap;
-use clap::{App, Arg};
+use advent_of_code::cli;
 
 use std::str::FromStr;
-
-struct InputArgs {
-    file_path: String,
-}
-
-fn parse_args() -> InputArgs {
-    let matches = App::new("Advent of code day 1")
-        .version("0.0.1")
-        .about("Count the number of times a depth measurement increases")
-        .arg(
-            Arg::with_name("data_file")
-                .value_name("DATA_FILE")
-                .takes_value(true)
-                .help("Text file containing data - one integer per line")
-                .required(true),
-        )
-        .get_matches();
-
-    InputArgs {
-        file_path: matches.value_of("data_file").unwrap().to_owned(),
-    }
-}
 
 fn read_lines<T: FromStr>(file_path: &str) -> Vec<Result<T, <T as FromStr>::Err>> {
     std::fs::read_to_string(file_path)
@@ -50,8 +27,7 @@ fn count_increasing_window_sums(values: &Vec<i32>, window_size: usize) -> u64 {
 }
 
 fn main() {
-    let args = parse_args();
-    println!("Input file: {}", args.file_path);
+    let args = cli::parse_args();
 
     let depth_measurements: Vec<i32> = read_lines::<i32>(&args.file_path)
         .into_iter()

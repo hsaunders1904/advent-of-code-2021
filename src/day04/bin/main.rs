@@ -1,7 +1,7 @@
-mod cli_parser;
 mod io;
 mod part1;
 
+use advent_of_code::cli;
 use ndarray::Array2;
 use part1::Board;
 
@@ -45,19 +45,23 @@ fn get_last_to_win(drawn_numbers: &Vec<u32>, boards: &mut Vec<Board>) -> Option<
 }
 
 fn main() {
-    let args = cli_parser::parse_args();
+    let args = cli::parse_args();
     let (drawn_numbers, raw_boards) = io::read_input(&args.file_path);
     let mut boards = create_boards(raw_boards);
 
+    let now = std::time::Instant::now();
     match part1::get_winning_score(&drawn_numbers, &mut boards) {
         Some(score) => println!("First BINGO! With score {}", score),
         None => println!("No winners!"),
     };
+    println!("Took {} ms\n", now.elapsed().as_millis());
 
+    let now = std::time::Instant::now();
     match get_last_to_win(&drawn_numbers, &mut boards) {
         Some(score) => println!("Final BINGO! With score {}", score),
         None => println!("No winners!"),
     }
+    println!("Took {} ms", now.elapsed().as_millis());
 }
 
 #[cfg(test)]

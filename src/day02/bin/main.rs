@@ -1,4 +1,4 @@
-mod cli_parser;
+use advent_of_code::cli;
 
 #[derive(PartialEq, Debug)]
 enum Direction {
@@ -91,7 +91,7 @@ fn accumulate_instructions(instructions: Vec<Instruction>) -> Position {
 }
 
 fn main() {
-    let args = cli_parser::parse_args();
+    let args = cli::parse_args();
 
     let file_contents = std::fs::read_to_string(args.file_path).expect("Error reading file.");
     let instructions = parse_instructions(&file_contents);
