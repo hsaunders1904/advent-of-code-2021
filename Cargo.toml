@@ -27,6 +27,10 @@ path = "src/day05/bin/main.rs"
 name = "day06"
 path = "src/day06/bin/main.rs"
 
+[[bin]]
+name = "day07"
+path = "src/day07/bin/main.rs"
+
 [dependencies]
 clap = "*"
 bit_field = "*"
