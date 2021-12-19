@@ -24,3 +24,17 @@ pub mod cli {
         }
     }
 }
+
+pub mod aoc_io {
+    use std::fs::File;
+    use std::io::BufRead;
+    use std::path::Path;
+
+    pub fn read_lines<P>(filename: P) -> std::io::Result<std::io::Lines<std::io::BufReader<File>>>
+    where
+        P: AsRef<Path>,
+    {
+        let file = File::open(filename)?;
+        Ok(std::io::BufReader::new(file).lines())
+    }
+}
